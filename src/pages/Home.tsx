@@ -39,21 +39,32 @@ const Home = () => {
     const fetchSongs = async () => {
       try {
         const response = await axios.get('/all-completed-songs');
+        console.log('API 응답:', response.data); // 응답 데이터 확인
+
         const songsData: SongResponse = response.data;
+
+        // 데이터가 비어있는지 확인
+        if (!songsData || Object.keys(songsData).length === 0) {
+          console.log('받아온 데이터가 비어있습니다');
+          return;
+        }
 
         // 객체를 배열로 변환하고 최신순으로 정렬
         const songsArray = Object.entries(songsData)
-          .map(([id, data]) => ({
-            id,
-            ...data,
-          }))
+          .map(([id, data]) => {
+            console.log('각 곡 데이터:', id, data); // 각 곡의 데이터 확인
+            return {
+              id,
+              ...data,
+            };
+          })
           .sort(
             (a, b) =>
               new Date(b.created_at).getTime() -
               new Date(a.created_at).getTime()
           );
 
-        // 최대 3개만 선택
+        console.log('변환된 배열:', songsArray); // 최종 배열 확인
         setSongs(songsArray.slice(0, 3));
       } catch (error) {
         console.error("음악 목록을 가져오는데 실패했습니다:", error);
