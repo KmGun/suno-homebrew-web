@@ -123,7 +123,7 @@ const Lyrics = () => {
 
     try {
       const response = await fetch(
-        `/generate-audio`,
+        `/api/generate-audio`,
         {
           method: "POST",
           headers: {
