@@ -38,9 +38,7 @@ const Home = () => {
     // 완성된 음악 목록 가져오기
     const fetchSongs = async () => {
       try {
-        const response = await axios.get(
-          `${process.env.REACT_APP_SONG_GENERATE_API_URL}/all-completed-songs`
-        );
+        const response = await axios.get('/all-completed-songs');
         const songsData: SongResponse = response.data;
 
         // 객체를 배열로 변환하고 최신순으로 정렬

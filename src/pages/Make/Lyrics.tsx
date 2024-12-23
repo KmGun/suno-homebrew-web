@@ -117,13 +117,13 @@ const Lyrics = () => {
       .filter((genre) => !make.selectedGenres.includes(genre))
       .map((genre) => genreMapping[genre]);
 
-    const genderPrompt = make.selectedArtist.isMale
+    const genderPrompt = (make.selectedArtist as any).isMale
       ? "make vocal male version"
       : "make vocal female version";
 
     try {
       const response = await fetch(
-        `${process.env.REACT_APP_SONG_GENERATE_API_URL}/generate-audio`,
+        `/generate-audio`,
         {
           method: "POST",
           headers: {

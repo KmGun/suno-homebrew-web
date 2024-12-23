@@ -31,7 +31,7 @@ const My = () => {
         if (!songIds) return;
 
         const response = await axios.post(
-          `${process.env.REACT_APP_SONG_GENERATE_API_URL}/songs`,
+          `/songs`,
           { song_ids: songIds }
         );
         setSongs(response.data);
