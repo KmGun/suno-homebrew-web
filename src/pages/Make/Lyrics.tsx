@@ -139,8 +139,8 @@ const Lyrics = () => {
           prompt: genderPrompt,
           style: `${selectedGenresInEnglish.join(", ")}, gentle piano accompaniment, warm atmosphere`,
           style_negative: unselectedGenres.join(", "),
-          modelName: make.selectedArtist.id,
-          phoneNumber: phone,
+          model_name: make.selectedArtist.id,
+          phone_number: phone,
         }
       );
 
@@ -214,7 +214,7 @@ const Lyrics = () => {
   return (
     <Container>
       <ContentWrapper>
-        <Title>제목과 가사를 입력�� 보세요!</Title>
+        <Title>제목�� 가사를 입력�� 보세요!</Title>
         <TitleInput
           value={make.title}
           onChange={handleTitleChange}
