@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
+console.log('hi')
 const NotFound = () => {
   return (
     <div>
