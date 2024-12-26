@@ -5,13 +5,16 @@ import { playerState } from "../atom.ts";
 import PlayIcon from "../assets/play.svg";
 import PauseIcon from "../assets/pause.svg";
 import ShareIcon from "../assets/share.svg";
+import HeartIcon from "../assets/heart.svg";
+import HeartFilledIcon from "../assets/heart-filled.svg";
 
 const MusicPlayer = () => {
   const [player, setPlayer] = useRecoilState(playerState);
   const [isExpanded, setIsExpanded] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [currentTime, setCurrentTime] = useState<number>(0);
+  const [duration, setDuration] = useState<number>(0);
+  const [isLiked, setIsLiked] = useState<boolean>(false);
 
   const togglePlay = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -46,80 +49,88 @@ const MusicPlayer = () => {
   };
 
   useEffect(() => {
-    if (player.currentSong) {
-      if (audioRef.current) {
-        audioRef.current.src = player.currentSong.audioUrl;
-        audioRef.current.load();
-        
-        audioRef.current.addEventListener('loadedmetadata', () => {
-          audioRef.current?.play()
-            .then(() => {
-              setPlayer((prev) => ({
-                ...prev,
-                isPlaying: true,
-              }));
-              setDuration(audioRef.current?.duration || 0);
-            })
-            .catch((error) => {
-              console.error("재생 실패:", error);
-              setPlayer((prev) => ({
-                ...prev,
-                isPlaying: false,
-              }));
-            });
-        }, { once: true });
-      }
-    }
-  }, [player.currentSong?.audioUrl]);
+    if (player.currentSong && audioRef.current) {
+      audioRef.current.src = player.currentSong.audioUrl;
+      audioRef.current.load();
+      
+      const handleLoadedMetadata = () => {
+        if (audioRef.current) {
+          setDuration(audioRef.current.duration);
+          setCurrentTime(0);
+          
+          if (player.isPlaying) {
+            audioRef.current.play().catch(console.error);
+          } else {
+            audioRef.current.pause();
+          }
+        }
+      };
 
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.src = player.currentSong?.audioUrl || "";
+      audioRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
+      
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        }
+      };
     }
-  }, [player.currentSong]);
+  }, [player.currentSong, player.isPlaying]);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
+      if (audio.currentTime >= 0) {
+        setCurrentTime(audio.currentTime);
+      }
     };
 
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-      console.log('Duration loaded:', audio.duration);
-    };
-
-    const handleEnded = () => {
-      setPlayer((prev) => ({
-        ...prev,
-        isPlaying: false,
-      }));
-      setCurrentTime(0);
+    const handleDurationChange = () => {
+      if (audio.duration > 0) {
+        setDuration(audio.duration);
+      }
     };
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
-    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("durationchange", handleDurationChange);
+    audio.addEventListener("loadedmetadata", handleDurationChange);
+
+    if (audio.duration) {
+      setDuration(audio.duration);
+    }
+    if (audio.currentTime) {
+      setCurrentTime(audio.currentTime);
+    }
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("durationchange", handleDurationChange);
+      audio.removeEventListener("loadedmetadata", handleDurationChange);
     };
-  }, []);
+  }, [isExpanded]);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      if (player.isPlaying) {
+        audioRef.current.play().catch(console.error);
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [player.isPlaying]);
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!audioRef.current || !duration) return;
+    
     const progressBar = e.currentTarget;
-    const clickPosition = e.clientX - progressBar.getBoundingClientRect().left;
-    const percentageClicked = clickPosition / progressBar.offsetWidth;
-
-    if (audioRef.current) {
-      const newTime = percentageClicked * duration;
-      audioRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
-    }
+    const rect = progressBar.getBoundingClientRect();
+    const clickPosition = e.clientX - rect.left;
+    const percentageClicked = clickPosition / rect.width;
+    
+    const newTime = percentageClicked * duration;
+    audioRef.current.currentTime = newTime;
+    setCurrentTime(newTime);
   };
 
   const formatTime = (time: number) => {
@@ -152,12 +163,77 @@ const MusicPlayer = () => {
     setIsExpanded(false);
   };
 
+  useEffect(() => {
+    if (player.currentSong) {
+      console.log('현재 곡 정보:', player.currentSong);
+      const likes = localStorage.getItem('likes') || '';
+      const songId = player.currentSong.id;
+      console.log('현재 likes 상태:', likes);
+      console.log('현재 songId:', songId);
+      setIsLiked(likes.split(',').includes(songId));
+    }
+  }, [player.currentSong]);
+
+  const handleSongClick = (song: SongData, version: number) => {
+    const audioUrl = song.audio_links.find((link) => 
+      link.endsWith(`[0]${version}_result.mp3`)
+    );
+
+    if (audioUrl) {
+      const songId = audioUrl.split('/song-requests/')[1].split('/')[0];
+      
+      setPlayer((prev) => ({
+        ...prev,
+        currentSong: {
+          title: `${song.title} VER ${version}`,
+          artist: findArtistName(song),
+          lyric: song.lyric,
+          audioUrl: audioUrl,
+          thumbnailUrl: "",
+          id: songId,
+        },
+        isPlaying: true,
+      }));
+    }
+  };
+
+  const handleLike = () => {
+    if (!player.currentSong) return;
+    
+    console.log('좋아요 클릭시 현재 곡 데이터:', player.currentSong);
+    const likes = localStorage.getItem('likes');
+    console.log('현재 저장된 likes:', likes);
+    
+    const likesList = likes ? likes.split(',').filter(id => id !== '') : [];
+    const songId = player.currentSong.id;
+    
+    console.log('현재 likes:', likes);
+    console.log('현재 likesList:', likesList);
+    console.log('현재 songId:', songId);
+    
+    if (isLiked) {
+      const newLikes = likesList.filter(id => id !== songId);
+      console.log('좋아요 취소 후:', newLikes);
+      localStorage.setItem('likes', newLikes.join(','));
+      setIsLiked(false);
+      alert('좋아요가 취소되었습니다.');
+    } else {
+      const newLikes = [...likesList, songId];
+      console.log('좋아요 추가 후:', newLikes);
+      localStorage.setItem('likes', newLikes.join(','));
+      setIsLiked(true);
+      alert('좋아요가 추가되었습니다.');
+    }
+
+    console.log('저장 후 localStorage:', localStorage.getItem('likes'));
+  };
+
   if (!player.currentSong) return null;
 
   return (
     <PlayerContainer expanded={isExpanded}>
       {!isExpanded ? (
-        <PlayerContent onClick={() => setIsExpanded(true)}>
+        <PlayerContent onClick={handleMinimizedClick}>
           <MinimizedView>
             <Thumbnail src={player.currentSong.thumbnailUrl} alt="앨범 커버" />
             <SongInfo>
@@ -176,13 +252,7 @@ const MusicPlayer = () => {
         </PlayerContent>
       ) : (
         <>
-          <CloseButton
-            type="button"
-            onClick={handleClose}
-            style={{ zIndex: 1001 }}
-          >
-            ×
-          </CloseButton>
+          <CloseButton onClick={handleClose}>×</CloseButton>
           <ExpandedView>
             <ExpandedContent>
               <LargeThumbnail
@@ -198,9 +268,14 @@ const MusicPlayer = () => {
                 {player.currentSong.lyric ? (
                   <Lyrics>{player.currentSong.lyric}</Lyrics>
                 ) : (
-                  <Lyrics>가사 정보가 없습니다.</Lyrics>
+                  <Lyrics>���사 정보가 없습니다.</Lyrics>
                 )}
               </LyricsSection>
+
+              <LikeButton onClick={handleLike}>
+                <img src={isLiked ? HeartFilledIcon : HeartIcon} alt="좋아요" />
+                {isLiked ? '좋아요 취소' : '좋아요'}
+              </LikeButton>
 
               <ShareButton onClick={handleShare}>
                 <img src={ShareIcon} alt="공유하기" />
@@ -208,14 +283,16 @@ const MusicPlayer = () => {
               </ShareButton>
 
               <PlayerControls>
-                <ProgressContainer className="progress-container">
+                <ProgressContainer>
                   <ProgressBar
                     onClick={handleProgressClick}
-                    progress={`${(currentTime / duration) * 100}%`}
-                  />
+                    progress={`${((currentTime || 0) / (duration || 1)) * 100}%`}
+                  >
+                    <ProgressBarFill style={{ width: `${((currentTime || 0) / (duration || 1)) * 100}%` }} />
+                  </ProgressBar>
                   <TimeInfo>
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration)}</span>
+                    <span>{formatTime(currentTime || 0)}</span>
+                    <span>{formatTime(duration || 0)}</span>
                   </TimeInfo>
                 </ProgressContainer>
                 <PlayButton onClick={togglePlay}>
@@ -416,43 +493,20 @@ const ProgressContainer = styled.div`
 const ProgressBar = styled.div<{ progress: string }>`
   width: 100%;
   height: 4px;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 2px;
   position: relative;
   cursor: pointer;
-  transition: height 0.2s ease;
+`;
 
-  &:hover {
-    height: 6px;
-  }
-
-  &::after {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0;
-    height: 100%;
-    width: ${props => props.progress};
-    background: #FFB300;
-    border-radius: 2px;
-  }
-
-  &::before {
-    content: "";
-    position: absolute;
-    right: calc(100% - ${props => props.progress});
-    top: 50%;
-    transform: translateY(-50%);
-    width: 12px;
-    height: 12px;
-    background: #FFB300;
-    border-radius: 50%;
-    transition: transform 0.2s ease;
-  }
-
-  &:hover::before {
-    transform: translateY(-50%) scale(1.2);
-  }
+const ProgressBarFill = styled.div`
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: #FFB300;
+  border-radius: 2px;
+  transition: width 0.1s linear;
 `;
 
 const TimeInfo = styled.div`
@@ -515,6 +569,29 @@ const CloseButton = styled.button`
 
   &:hover {
     background: rgba(255, 255, 255, 0.1);
+  }
+`;
+
+const LikeButton = styled.button`
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
   }
 `;
 

@@ -4,6 +4,8 @@ import axios from "axios";
 import { SINGERS } from "../constants/artists.ts";
 import { useSetRecoilState } from "recoil";
 import { playerState } from "../atom.ts";
+import { useNavigate } from "react-router-dom";
+import { ReactComponent as HomeIcon } from "../assets/home.svg";
 
 interface SongData {
   lyric: string;
@@ -21,34 +23,51 @@ interface SongDataResponse {
 }
 
 const My = () => {
+  const navigate = useNavigate();
   const [songs, setSongs] = useState<SongDataResponse>({});
+  const [likedSongs, setLikedSongs] = useState<SongDataResponse>({});
   const setPlayer = useSetRecoilState(playerState);
 
   useEffect(() => {
     const fetchSongs = async () => {
       try {
+        // 내가 만든 노래들 가져오기
         const songIds = localStorage.getItem("song_request_id");
-        if (!songIds) return;
+        if (songIds) {
+          const response = await axios.post(
+            `${process.env.REACT_APP_SONG_GENERATE_API_URL}/songs`,
+            { song_ids: songIds }
+          );
+          setSongs(response.data);
+        }
 
-        const response = await axios.post(
-          `${process.env.REACT_APP_SONG_GENERATE_API_URL}/songs`,
-          { song_ids: songIds }
-        );
-        setSongs(response.data);
+        // 좋아요한 노래들 가져오기 (내가 만든 노래 제외)
+        const likedIds = localStorage.getItem("likes");
+        if (likedIds) {
+          const response = await axios.post(
+            `${process.env.REACT_APP_SONG_GENERATE_API_URL}/songs`,
+            { song_ids: likedIds }
+          );
+          
+          // 내가 만든 노래는 제외하고 좋아요 목록에 표시
+          const filteredLikedSongs = Object.entries(response.data).reduce((acc, [id, song]) => {
+            if (!songs[id]) {
+              acc[id] = song;
+            }
+            return acc;
+          }, {} as SongDataResponse);
+          
+          setLikedSongs(filteredLikedSongs);
+        }
       } catch (error) {
         console.error("노래 데이터를 가져오는데 실패했습니다:", error);
       }
     };
 
-    // 컴포넌트 마운트 시 즉시 실행
     fetchSongs();
-
-    // 5초마다 데이터 새로 가져오기
     const interval = setInterval(fetchSongs, 5000);
-
-    // 컴포넌트 언마운트 시 인터벌 정리
     return () => clearInterval(interval);
-  }, []);
+  }, [songs]);
 
   const findArtistName = (songData: SongData) => {
     const artist = SINGERS.find((singer) => singer.id === songData.model_name);
@@ -74,9 +93,37 @@ const My = () => {
 
   return (
     <Container>
-      <Title>내 음악 보기</Title>
+      <Header>
+        <BackButton onClick={() => navigate(-1)}>
+          <HomeIcon width="24" height="24" />
+        </BackButton>
+        <Title>내 음악 보기</Title>
+      </Header>
+      
+      <SectionTitle>내가 만든 음악</SectionTitle>
       <SongList>
         {Object.entries(songs).map(([id, song]) => (
+          <React.Fragment key={id}>
+            {[1, 2].map((version) => (
+              <SongItem
+                key={`${id}-${version}`}
+                status={song.status}
+                onClick={() => handleSongClick(song, version)}
+                style={{
+                  cursor: song.status === "complete" ? "pointer" : "default",
+                }}
+              >
+                <SongThumbnail />
+                <SongInfo song={song} version={version} />
+              </SongItem>
+            ))}
+          </React.Fragment>
+        ))}
+      </SongList>
+
+      <SectionTitle>좋아요한 음악</SectionTitle>
+      <SongList>
+        {Object.entries(likedSongs).map(([id, song]) => (
           <React.Fragment key={id}>
             {[1, 2].map((version) => (
               <SongItem
@@ -104,9 +151,30 @@ const Container = styled.div`
   min-height: 100vh;
 `;
 
+const Header = styled.div`
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
+const BackButton = styled.button`
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
 const Title = styled.h1`
   font-size: 24px;
-  margin-bottom: 20px;
+  margin: 0;
 `;
 
 const SongList = styled.div`
@@ -187,6 +255,12 @@ const SongDate = styled.p<{ status: string }>`
   font-size: 14px;
   color: #444444;
   visibility: ${(props) => (props.status === "pending" ? "hidden" : "visible")};
+`;
+
+const SectionTitle = styled.h2`
+  font-size: 20px;
+  margin: 24px 0 16px 0;
+  color: #ffffff;
 `;
 
 export default My;

@@ -214,7 +214,7 @@ const Lyrics = () => {
   return (
     <Container>
       <ContentWrapper>
-        <Title>제목�� 가사를 입력�� 보세요!</Title>
+        <Title>제목과 가사를 입력해보세요!</Title>
         <TitleInput
           value={make.title}
           onChange={handleTitleChange}
@@ -234,8 +234,7 @@ const Lyrics = () => {
           </ExpandButton>
         </LyricsWrapper>
         <GuideText>
-          *자유롭게 배치는 커스텀 하실수 있어요!
-          <br /> [Intro]: 곡의 시작 부분. 음악의 분위기를 서서히 잡아감.
+          [Intro]: 곡의 시작 부분. 음악의 분위기를 서서히 잡아감.
           <br />
           [Verse]: 노래의 본문 부분. 곡의 이야기를 전달하는 역할.
           <br />

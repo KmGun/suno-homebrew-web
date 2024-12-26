@@ -75,52 +75,64 @@ const Home = () => {
   }, []);
 
   const findArtistName = (songData: SongData) => {
+    console.log('모델 이름:', songData.model_name); // 디버깅용
     const artist = SINGERS.find((singer) => singer.id === songData.model_name);
+    console.log('찾은 가수:', artist); // 디버깅용
     return artist ? artist.name : songData.model_name;
   };
 
-  const handleSongClick = (song: SongData) => {
-    // audio_links 배열에서 '[0]1_result.mp3'로 끝나는 링크 찾기
-    const audioUrl =
-      song.audio_links.find((link) => link.endsWith("[0]1_result.mp3")) ||
-      song.audio_links[0];
+  const handleSongClick = (song: SongData, version: number) => {
+    const audioUrl = song.audio_links.find((link) => 
+      link.endsWith(`[0]${version}_result.mp3`)
+    );
 
-    setPlayer((prev) => ({
-      ...prev,
-      currentSong: {
-        title: song.title,
-        artist: findArtistName(song),
-        lyric: song.lyric,
-        audioUrl: audioUrl,
-        thumbnailUrl: "",
-      },
-      isPlaying: false,
-    }));
+    if (audioUrl) {
+      setPlayer((prev) => ({
+        ...prev,
+        currentSong: {
+          title: `${song.title} VER ${version}`,
+          artist: findArtistName(song),
+          lyric: song.lyric,
+          audioUrl: audioUrl,
+          thumbnailUrl: "",
+          id: song.id,
+        },
+        isPlaying: true,
+      }));
+    }
   };
 
   return (
     <Container>
       <Title>탄핵 음악 만들기</Title>
       <MainImage src={ysr2} alt="윤석열 이미지" />
-      <Button onClick={() => navigate("/make/artist")}>바로 만들기</Button>
+      <ButtonContainer>
+        <Button onClick={() => navigate("/make/artist")}>바로 만들기</Button>
+        {hasSongRequest && (
+          <Button onClick={() => navigate("/my")}>내 음악</Button>
+        )}
+      </ButtonContainer>
 
       <ProfileSection>
         <SectionTitle>둘러보기</SectionTitle>
         {songs.map((song) => (
-          <ProfileCard
-            key={song.id}
-            onClick={() => handleSongClick(song)}
-            style={{ cursor: "pointer" }}
-          >
-            <SongThumbnail />
-            <ProfileInfo>
-              <ProfileName>{song.title}</ProfileName>
-              <ProfileDescription>{findArtistName(song)}</ProfileDescription>
-              <CreatedAt>
-                {new Date(song.created_at).toLocaleDateString()}
-              </CreatedAt>
-            </ProfileInfo>
-          </ProfileCard>
+          <React.Fragment key={song.id}>
+            {[1, 2].map((version) => (
+              <ProfileCard
+                key={`${song.id}-${version}`}
+                onClick={() => handleSongClick(song, version)}
+                style={{ cursor: "pointer" }}
+              >
+                <SongThumbnail />
+                <ProfileInfo>
+                  <ProfileName>{`${song.title} VER ${version}`}</ProfileName>
+                  <ProfileDescription>
+                    {findArtistName(song)}
+                  </ProfileDescription>
+                </ProfileInfo>
+              </ProfileCard>
+            ))}
+          </React.Fragment>
         ))}
       </ProfileSection>
     </Container>
@@ -154,6 +166,12 @@ const MainImage = styled.img`
   margin-top: 80px;
 `;
 
+const ButtonContainer = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-bottom: 40px;
+`;
+
 const Button = styled.button`
   background-color: #ffd700;
   color: #000000;
@@ -161,7 +179,6 @@ const Button = styled.button`
   border: none;
   border-radius: 20px;
   cursor: pointer;
-  margin-bottom: 40px;
   font-weight: bold;
 `;
 
@@ -205,6 +222,8 @@ const ProfileName = styled.div`
 const ProfileDescription = styled.div`
   font-size: 14px;
   color: #cccccc;
+  margin-top: 4px;
+  display: block;
 `;
 
 const CreatedAt = styled.div`

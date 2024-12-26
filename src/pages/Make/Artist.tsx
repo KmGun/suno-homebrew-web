@@ -23,7 +23,7 @@ const Artist = () => {
 
   return (
     <Container>
-      <Title>누가 불러줄으면 좋겠나요?</Title>
+      <Title>누가 불러줬으면 좋겠나요?</Title>
 
       <SingerGrid>
         {SINGERS.map((singer) => (
