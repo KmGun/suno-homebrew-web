@@ -137,28 +137,14 @@ const Lyrics = () => {
           title: make.title,
           lyric: make.lyrics,
           prompt: genderPrompt,
-          style: `${selectedGenresInEnglish.join(
-            ", "
-          )}, gentle piano accompaniment, warm atmosphere`,
+          style: `${selectedGenresInEnglish.join(", ")}, gentle piano accompaniment, warm atmosphere`,
           style_negative: unselectedGenres.join(", "),
           modelName: make.selectedArtist.id,
           phoneNumber: phone,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*", 
-            "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type"
-          }
         }
       );
 
-      if (!response.ok) {
-        throw new Error("API 요청 실패");
-      }
-
-      const data = await response.json();
+      const data = response.data;
 
       // 기존 요청 ID들을 가져옴
       const existingIds = localStorage.getItem("song_request_id");
@@ -228,7 +214,7 @@ const Lyrics = () => {
   return (
     <Container>
       <ContentWrapper>
-        <Title>제목과 가사를 입력해 보세요!</Title>
+        <Title>제목과 가사를 입력�� 보세요!</Title>
         <TitleInput
           value={make.title}
           onChange={handleTitleChange}
@@ -423,7 +409,7 @@ const ModalButton = styled.button`
   }
 `;
 
-// 새로운 스타일 컴포넌트 추가
+// 새로��� 스타일 컴포넌트 추가
 const LyricsWrapper = styled.div`
   width: 80%;
   position: relative;
