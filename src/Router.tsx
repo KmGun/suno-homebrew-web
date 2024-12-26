@@ -12,8 +12,8 @@ function Router() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Main />} />
-        <Route path="/home" element={<Home />} />
+        {/* <Route path="/" element={<Main />} /> */}
+        <Route path="/" element={<Home />} />
         <Route path="/make/artist" element={<Artist />} />
         <Route path="/make/genre" element={<Genre />} />
         <Route path="/make/lyrics" element={<Lyrics />} />

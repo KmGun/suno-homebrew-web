@@ -38,7 +38,7 @@ const Home = () => {
     // 완성된 음악 목록 가져오기
     const fetchSongs = async () => {
       try {
-        const response = await axios.get(`/all-completed-songs');
+        const response = await axios.get(`${process.env.REACT_APP_SONG_GENERATE_API_URL}/all-completed-songs`);
         console.log('API 응답:', response.data); // 응답 데이터 확인
 
         const songsData: SongResponse = response.data;

@@ -5,6 +5,7 @@ import { useRecoilState } from "recoil";
 import { makeState } from "../../atom.ts";
 import { useNavigate } from "react-router-dom";
 import OpenAI from 'openai';
+import axios from "axios";
 
 // OpenAI 클라이언트 설정
 const openai = new OpenAI({
@@ -130,28 +131,26 @@ const Lyrics = () => {
       : "make vocal female version";
 
     try {
-      const response = await fetch(
-        `/generate-audio`,
+      const response = await axios.post(
+        `${process.env.REACT_APP_SONG_GENERATE_API_URL}/generate-audio`,
         {
-          method: "POST",
+          title: make.title,
+          lyric: make.lyrics,
+          prompt: genderPrompt,
+          style: `${selectedGenresInEnglish.join(
+            ", "
+          )}, gentle piano accompaniment, warm atmosphere`,
+          style_negative: unselectedGenres.join(", "),
+          modelName: make.selectedArtist.id,
+          phoneNumber: phone,
+        },
+        {
           headers: {
             "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Origin": "*", 
             "Access-Control-Allow-Methods": "POST, OPTIONS",
-            "Access-Control-Allow-Headers": "Content-Type",
-          },
-          mode: "cors",
-          body: JSON.stringify({
-            title: make.title,
-            lyric: make.lyrics,
-            prompt: genderPrompt,
-            style: `${selectedGenresInEnglish.join(
-              ", "
-            )}, gentle piano accompaniment, warm atmosphere`,
-            style_negative: unselectedGenres.join(", "),
-            modelName: make.selectedArtist.id,
-            phoneNumber: phone,
-          }),
+            "Access-Control-Allow-Headers": "Content-Type"
+          }
         }
       );
 
