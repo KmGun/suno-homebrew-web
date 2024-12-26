@@ -4,6 +4,13 @@ import StatusBar from "../../components/StatusBar.tsx";
 import { useRecoilState } from "recoil";
 import { makeState } from "../../atom.ts";
 import { useNavigate } from "react-router-dom";
+import OpenAI from 'openai';
+
+// OpenAI 클라이언트 설정
+const openai = new OpenAI({
+  apiKey: process.env.REACT_APP_OPENAI_API_KEY,
+  dangerouslyAllowBrowser: true
+});
 
 // 장르 매핑 추가
 const genreMapping: { [key: string]: string } = {
@@ -62,6 +69,7 @@ const Lyrics = () => {
   const [make, setMake] = useRecoilState(makeState);
   const navigate = useNavigate();
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [isGenerating, setIsGenerating] = React.useState(false);
 
   React.useEffect(() => {
     if (!make.lyrics) {
@@ -123,7 +131,7 @@ const Lyrics = () => {
 
     try {
       const response = await fetch(
-        `/api/generate-audio`,
+        `/generate-audio`,
         {
           method: "POST",
           headers: {
@@ -173,6 +181,51 @@ const Lyrics = () => {
     }
   };
 
+  // 가사 확장 함수 추가
+  const expandLyrics = async () => {
+    if (!make.lyrics.trim()) {
+      alert("가사를 조금이라도 입력해주세요!");
+      return;
+    }
+
+    // 한글 감지를 위한 정규식
+    const hasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(make.lyrics);
+    
+    setIsGenerating(true);
+    try {
+      const completion = await openai.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: hasKorean
+              ? "당신은 전문 작사가입니다. 노래 제목과 주어진 가사를 바탕으로 더 확장된 가사를 작성해주세요. 제목의 의미와 감성이 가사에 잘 반영되도록 해주세요."
+              : "You are a professional lyricist. Please expand the given lyrics based on both the song title and existing lyrics. Make sure the meaning and emotion of the title are well reflected in the expanded lyrics."
+          },
+          {
+            role: "user",
+            content: hasKorean
+              ? `노래 제목: "${make.title}"\n\n다음 가사를 확장해서 작성해주세요. 제목의 의미를 잘 살리고 기존 구조([Intro], [Verse], [Chorus] 등)를 유지하면서 확장해주세요: \n\n${make.lyrics}`
+              : `Song title: "${make.title}"\n\nPlease expand these lyrics while maintaining the existing structure ([Intro], [Verse], [Chorus], etc.) and incorporating the meaning of the title: \n\n${make.lyrics}`
+          }
+        ],
+        model: "gpt-4o",
+      });
+
+      const expandedLyrics = completion.choices[0]?.message?.content;
+      if (expandedLyrics) {
+        setMake((prev) => ({
+          ...prev,
+          lyrics: expandedLyrics,
+        }));
+      }
+    } catch (error) {
+      console.error("가사 생성 오류:", error);
+      alert("가사 생성 중 오류가 발생했습니다.");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   return (
     <Container>
       <ContentWrapper>
@@ -182,11 +235,19 @@ const Lyrics = () => {
           onChange={handleTitleChange}
           placeholder="노래 제목을 입력하세요..."
         />
-        <LyricsTextArea
-          value={make.lyrics}
-          onChange={handleLyricsChange}
-          placeholder="여기에 가사를 입력하세요..."
-        />
+        <LyricsWrapper>
+          <LyricsTextArea
+            value={make.lyrics}
+            onChange={handleLyricsChange}
+            placeholder="여기에 가사를 입력하세요..."
+          />
+          <ExpandButton 
+            onClick={expandLyrics}
+            disabled={isGenerating}
+          >
+            {isGenerating ? "생성 중..." : "AI 가사 도움받기"}
+          </ExpandButton>
+        </LyricsWrapper>
         <GuideText>
           *자유롭게 배치는 커스텀 하실수 있어요!
           <br /> [Intro]: 곡의 시작 부분. 음악의 분위기를 서서히 잡아감.
@@ -195,7 +256,7 @@ const Lyrics = () => {
           <br />
           [Chorus]: 후렴구. 기억에 남는 멜로디나 주제를 반복해 강조.
           <br />
-          [Outro]: 곡의 마무리 부분. 자연스럽게 곡을 끝맺음.
+          [Outro]: 곡의 마무리 부분. 자연스럽게 곡의 끝맺음.
         </GuideText>
         <NextButton onClick={handleNextClick}>다음</NextButton>
       </ContentWrapper>
@@ -237,8 +298,8 @@ const ContentWrapper = styled.div`
 `;
 
 const LyricsTextArea = styled.textarea`
-  width: 80%;
-  height: 40vh;
+  width: 100%;
+  height: 55vh;
   background-color: #333;
   border: none;
   border-radius: 10px;
@@ -360,6 +421,35 @@ const ModalButton = styled.button`
 
   &:hover {
     opacity: 0.8;
+  }
+`;
+
+// 새로운 스타일 컴포넌트 추가
+const LyricsWrapper = styled.div`
+  width: 80%;
+  position: relative;
+`;
+
+const ExpandButton = styled.button`
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  background-color: #ffd700;
+  color: black;
+  cursor: pointer;
+  white-space: nowrap;
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  z-index: 10;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &:disabled {
+    background-color: #666;
+    cursor: not-allowed;
   }
 `;
 
