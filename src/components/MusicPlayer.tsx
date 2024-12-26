@@ -49,14 +49,16 @@ const MusicPlayer = () => {
     if (player.currentSong) {
       if (audioRef.current) {
         audioRef.current.src = player.currentSong.audioUrl;
-        setTimeout(() => {
-          audioRef.current
-            ?.play()
+        audioRef.current.load();
+        
+        audioRef.current.addEventListener('loadedmetadata', () => {
+          audioRef.current?.play()
             .then(() => {
               setPlayer((prev) => ({
                 ...prev,
                 isPlaying: true,
               }));
+              setDuration(audioRef.current?.duration || 0);
             })
             .catch((error) => {
               console.error("재생 실패:", error);
@@ -65,7 +67,7 @@ const MusicPlayer = () => {
                 isPlaying: false,
               }));
             });
-        }, 100);
+        }, { once: true });
       }
     }
   }, [player.currentSong?.audioUrl]);
@@ -86,14 +88,25 @@ const MusicPlayer = () => {
 
     const handleLoadedMetadata = () => {
       setDuration(audio.duration);
+      console.log('Duration loaded:', audio.duration);
+    };
+
+    const handleEnded = () => {
+      setPlayer((prev) => ({
+        ...prev,
+        isPlaying: false,
+      }));
+      setCurrentTime(0);
     };
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("loadedmetadata", handleLoadedMetadata);
+    audio.addEventListener("ended", handleEnded);
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
+      audio.removeEventListener("ended", handleEnded);
     };
   }, []);
 
@@ -400,10 +413,10 @@ const ProgressContainer = styled.div`
   max-width: 600px;
 `;
 
-const ProgressBar = styled.div`
+const ProgressBar = styled.div<{ progress: string }>`
   width: 100%;
   height: 4px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.3);
   border-radius: 2px;
   position: relative;
   cursor: pointer;
@@ -419,9 +432,26 @@ const ProgressBar = styled.div`
     left: 0;
     top: 0;
     height: 100%;
-    width: ${(props) => props.progress || "0%"};
-    background: #ffb300;
+    width: ${props => props.progress};
+    background: #FFB300;
     border-radius: 2px;
+  }
+
+  &::before {
+    content: "";
+    position: absolute;
+    right: calc(100% - ${props => props.progress});
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    background: #FFB300;
+    border-radius: 50%;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover::before {
+    transform: translateY(-50%) scale(1.2);
   }
 `;
 
