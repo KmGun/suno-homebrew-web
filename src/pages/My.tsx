@@ -31,7 +31,7 @@ const My = () => {
         if (!songIds) return;
 
         const response = await axios.post(
-          `/api/songs`,
+        `/songs`,
           { song_ids: songIds }
         );
         setSongs(response.data);
