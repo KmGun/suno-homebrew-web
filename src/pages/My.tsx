@@ -112,26 +112,32 @@ const My = () => {
       
       <SectionTitle>내가 만든 음악</SectionTitle>
       <SongList>
-        {Object.entries(songs).map(([id, song]) => (
-          <React.Fragment key={id}>
-            {[1, 2].map((version) => (
-              <SongItem
-                key={`${id}-${version}`}
-                status={song.status}
-                onClick={() => handleSongClick(song, version)}
-                style={{
-                  cursor: song.status === "complete" ? "pointer" : "default",
-                }}
-              >
-                <SongThumbnail 
-                  src={`https://suno-homebrew.s3.ap-northeast-2.amazonaws.com/album-covers/${id}/cover.png`}
-                  alt={`${song.title} 커버 이미지`}
-                />
-                <SongInfo song={song} version={version} />
-              </SongItem>
-            ))}
-          </React.Fragment>
-        ))}
+        {Object.keys(songs).length === 0 ? (
+          <EmptyMessage>
+            내가 만든 곡이 없다면,<br/> 홈 화면에서 확인해 주세요!
+          </EmptyMessage>
+        ) : (
+          Object.entries(songs).map(([id, song]) => (
+            <React.Fragment key={id}>
+              {[1, 2].map((version) => (
+                <SongItem
+                  key={`${id}-${version}`}
+                  status={song.status}
+                  onClick={() => handleSongClick(song, version)}
+                  style={{
+                    cursor: song.status === "complete" ? "pointer" : "default",
+                  }}
+                >
+                  <SongThumbnail 
+                    src={`https://suno-homebrew.s3.ap-northeast-2.amazonaws.com/album-covers/${id}/cover.png`}
+                    alt={`${song.title} 커버 이미지`}
+                  />
+                  <SongInfo song={song} version={version} />
+                </SongItem>
+              ))}
+            </React.Fragment>
+          ))
+        )}
       </SongList>
 
       <SectionTitle>좋아요한 음악</SectionTitle>
@@ -282,6 +288,16 @@ const SectionTitle = styled.h2`
 
 const InstallButtonWrapper = styled.div`
   margin-left: auto;
+`;
+
+const EmptyMessage = styled.div`
+  color: #999999;
+  text-align: center;
+  padding: 24px;
+  background-color: #1e1e1e;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
 `;
 
 export default My;
