@@ -368,12 +368,13 @@ const PlayerContainer = styled.div<{ expanded: boolean }>`
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
+  z-index: 9999;
 
   ${(props) =>
     props.expanded &&
     `
     top: 0;
-    z-index: 1000;
+    z-index: 9999;
     height: 100%;
     width: 100%;
     position: fixed;

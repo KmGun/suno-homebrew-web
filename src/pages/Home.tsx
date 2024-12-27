@@ -27,7 +27,9 @@ const Home = () => {
   const navigate = useNavigate();
   const [hasSongRequest, setHasSongRequest] = useState<boolean>(false);
   const [songs, setSongs] = useState<SongData[]>([]);
+  const [allSongs, setAllSongs] = useState<SongData[]>([]);
   const setPlayer = useSetRecoilState(playerState);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   useEffect(() => {
     // localStorage 확인
@@ -40,11 +42,9 @@ const Home = () => {
     const fetchSongs = async () => {
       try {
         const response = await axios.get(`${process.env.REACT_APP_SONG_GENERATE_API_URL}/all-completed-songs`);
-        console.log('API 응답:', response.data); // 응답 데이터 확인
-
+        
         const songsData: SongResponse = response.data;
 
-        // 데이터가 비어있는지 확인
         if (!songsData || Object.keys(songsData).length === 0) {
           console.log('받아온 데이터가 비어있습니다');
           return;
@@ -52,20 +52,15 @@ const Home = () => {
 
         // 객체를 배열로 변환하고 최신순으로 정렬
         const songsArray = Object.entries(songsData)
-          .map(([id, data]) => {
-            console.log('각 곡 데이터:', id, data); // 각 곡의 데이터 확인
-            return {
-              id,
-              ...data,
-            };
-          })
-          .sort(
-            (a, b) =>
-              new Date(b.created_at).getTime() -
-              new Date(a.created_at).getTime()
+          .map(([id, data]) => ({
+            id,
+            ...data,
+          }))
+          .sort((a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
           );
 
-        console.log('변환된 배열:', songsArray); // 최종 배열 확인
+        setAllSongs(songsArray);
         setSongs(songsArray.slice(0, 3));
       } catch (error) {
         console.error("음악 목록을 가져오는데 실패했습니다:", error);
@@ -113,7 +108,12 @@ const Home = () => {
       </ButtonContainer>
 
       <ProfileSection>
-        <SectionTitle>둘러보기</SectionTitle>
+        <SectionTitleWrapper>
+          <SectionTitle>둘러보기</SectionTitle>
+          <MoreButton onClick={() => setIsModalOpen(true)}>
+            더보기 +
+          </MoreButton>
+        </SectionTitleWrapper>
         {songs.map((song) => (
           <React.Fragment key={song.id}>
             {[1, 2].map((version) => (
@@ -137,6 +137,39 @@ const Home = () => {
           </React.Fragment>
         ))}
       </ProfileSection>
+
+      {isModalOpen && (
+        <Modal onClose={() => setIsModalOpen(false)}>
+          <ModalHeader>
+            <ModalTitle>전체 음악 목록</ModalTitle>
+            <CloseButton onClick={() => setIsModalOpen(false)}>✕</CloseButton>
+          </ModalHeader>
+          <ModalContent>
+            {allSongs.map((song) => (
+              <React.Fragment key={song.id}>
+                {[1, 2].map((version) => (
+                  <ProfileCard
+                    key={`${song.id}-${version}`}
+                    onClick={() => handleSongClick(song, version)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <SongThumbnail 
+                      src={`https://suno-homebrew.s3.ap-northeast-2.amazonaws.com/album-covers/${song.id}/cover.png`}
+                      alt={`${song.title} 커버 이미지`}
+                    />
+                    <ProfileInfo>
+                      <ProfileName>{`${song.title} VER ${version}`}</ProfileName>
+                      <ProfileDescription>
+                        {findArtistName(song)}
+                      </ProfileDescription>
+                    </ProfileInfo>
+                  </ProfileCard>
+                ))}
+              </React.Fragment>
+            ))}
+          </ModalContent>
+        </Modal>
+      )}
       
       <FixedInstallButtonWrapper>
         <InstallAppButton />
@@ -254,6 +287,72 @@ const FixedInstallButtonWrapper = styled.div`
   width: calc(66% - 40px);
   max-width: 400px;
   z-index: 100;
+`;
+
+const SectionTitleWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
+const MoreButton = styled.button`
+  background: none;
+  border: none;
+  color: #ffd700;
+  cursor: pointer;
+  font-size: 14px;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+const Modal = styled.div<{ onClose: () => void }>`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 999;
+  padding: 20px;
+  overflow-y: auto;
+`;
+
+const ModalHeader = styled.div`
+  width: 100%;
+  max-width: 500px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
+const CloseButton = styled.button`
+  background: none;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 8px;
+  &:hover {
+    opacity: 0.8;
+  }
+`;
+
+const ModalTitle = styled.h2`
+  color: white;
+  margin-bottom: 20px;
+  font-size: 20px;
+`;
+
+const ModalContent = styled.div`
+  width: 100%;
+  max-width: 500px;
+  padding: 20px;
 `;
 
 export default Home;
