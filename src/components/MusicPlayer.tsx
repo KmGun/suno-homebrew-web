@@ -48,7 +48,7 @@ const MusicPlayer = () => {
       // 기본 공유 데이터
       const shareData = {
         title: player.currentSong.title,
-        text: `불러주는 탄핵 AI 노래 ${player.currentSong.title}을 지금 바로 들어보세요!`,
+        text: `${player.currentSong.artist}가 불러주는 탄핵 AI 노래 ${player.currentSong.title}을 지금 바로 들어보세요!`,
         url: shareUrl,
       };
 
