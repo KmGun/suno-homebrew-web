@@ -94,7 +94,7 @@ const Home = () => {
           artist: findArtistName(song),
           lyric: song.lyric,
           audioUrl: audioUrl,
-          thumbnailUrl: `https://song-request-bucket-1.s3.ap-northeast-2.amazonaws.com//suno-homebrew/album-covers/${song.id}/cover.png`,
+          thumbnailUrl: `https://suno-homebrew.s3.ap-northeast-2.amazonaws.com/album-covers/${song.id}/cover.png`,
           id: song.id,
         },
         isPlaying: true,
@@ -124,11 +124,8 @@ const Home = () => {
                 style={{ cursor: "pointer" }}
               >
                 <SongThumbnail 
-                  style={{
-                    backgroundImage: `url(https://song-request-bucket-1.s3.ap-northeast-2.amazonaws.com//suno-homebrew/album-covers/${song.id}/cover.png)`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center'
-                  }}
+                  src={`https://suno-homebrew.s3.ap-northeast-2.amazonaws.com/album-covers/${song.id}/cover.png`}
+                  alt={`${song.title} 커버 이미지`}
                 />
                 <ProfileInfo>
                   <ProfileName>{`${song.title} VER ${version}`}</ProfileName>
@@ -238,12 +235,12 @@ const CreatedAt = styled.div`
   margin-top: 4px;
 `;
 
-const SongThumbnail = styled.div`
+const SongThumbnail = styled.img`
   width: 48px;
   height: 48px;
-  background-color: #2a2a2a;
   border-radius: 4px;
   margin-right: 15px;
+  object-fit: cover;
 `;
 
 export default Home;

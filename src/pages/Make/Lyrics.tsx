@@ -14,14 +14,20 @@ const openai = new OpenAI({
 });
 
 // 장르 매핑 추가
-const genreMapping: { [key: string]: string } = {
+export const genreMapping: { [key: string]: string } = {
   댄스: "Dance",
   JPOP: "J-pop",
+  씨티팝: "City Pop",
   발라드: "Ballad",
+  락: "Rock",
   메탈: "Metal",
+  테크노: "Techno",
   힙합: "Hip-hop",
   재즈: "Jazz",
-  락: "Rock",
+  팝: "Pop",
+  클래식: "Classical",
+  블루스: "Blues",
+  랩: "Rap",
 };
 
 // PhoneModal 컴포넌트 추가
@@ -150,7 +156,7 @@ const Lyrics = () => {
           title: make.title,
           lyric: make.lyrics,
           prompt: genderPrompt,
-          style: `${selectedGenresInEnglish.join(", ")}, gentle piano accompaniment, warm atmosphere`,
+          style: `${selectedGenresInEnglish.join(", ")}`,
           style_negative: unselectedGenres.join(", "),
           model_name: make.selectedArtist.id,
           phone_number: phone,

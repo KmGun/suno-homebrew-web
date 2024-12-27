@@ -80,6 +80,10 @@ const My = () => {
       const audioIndex = song.audio_links.findIndex((link) =>
         link.includes(`[0]${version}_result.mp3`)
       );
+      
+      // 노래 ID 추출
+      const songId = song.audio_links[audioIndex].split('/song-requests/')[1].split('/')[0];
+      
       setPlayer({
         isPlaying: true,
         currentSong: {
@@ -87,6 +91,8 @@ const My = () => {
           artist: findArtistName(song),
           lyric: song.lyric,
           audioUrl: song.audio_links[audioIndex],
+          thumbnailUrl: `https://suno-homebrew.s3.ap-northeast-2.amazonaws.com/album-covers/${songId}/cover.png`,
+          id: songId,
         },
       });
     }
@@ -117,7 +123,10 @@ const My = () => {
                   cursor: song.status === "complete" ? "pointer" : "default",
                 }}
               >
-                <SongThumbnail />
+                <SongThumbnail 
+                  src={`https://suno-homebrew.s3.ap-northeast-2.amazonaws.com/album-covers/${id}/cover.png`}
+                  alt={`${song.title} 커버 이미지`}
+                />
                 <SongInfo song={song} version={version} />
               </SongItem>
             ))}
@@ -138,7 +147,10 @@ const My = () => {
                   cursor: song.status === "complete" ? "pointer" : "default",
                 }}
               >
-                <SongThumbnail />
+                <SongThumbnail 
+                  src={`https://suno-homebrew.s3.ap-northeast-2.amazonaws.com/album-covers/${id}/cover.png`}
+                  alt={`${song.title} 커버 이미지`}
+                />
                 <SongInfo song={song} version={version} />
               </SongItem>
             ))}
@@ -198,11 +210,11 @@ const SongItem = styled.div<{ status: string }>`
   position: relative;
 `;
 
-const SongThumbnail = styled.div`
+const SongThumbnail = styled.img`
   width: 48px;
   height: 48px;
-  background-color: #2a2a2a;
   border-radius: 4px;
+  object-fit: cover;
 `;
 
 const SongInfo = ({ song, version }: { song: SongData; version: number }) => {

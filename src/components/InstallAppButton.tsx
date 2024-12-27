@@ -48,7 +48,7 @@ const InstallAppButton = () => {
           alt="App Logo"
         />
       </LogoContainer>
-      <ButtonText>백그라운드에서 계속 듣기</ButtonText>
+      <ButtonText>앱으로 더 많은 노래 듣기!</ButtonText>
     </StyledButton>
   );
 };

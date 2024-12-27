@@ -4,16 +4,7 @@ import StatusBar from "../../components/StatusBar.tsx";
 import { useRecoilState } from "recoil";
 import { makeState } from "../../atom.ts";
 import { useNavigate } from "react-router-dom";
-
-const genreMapping: { [key: string]: string } = {
-  댄스: "Dance",
-  JPOP: "J-pop",
-  발라드: "Ballad",
-  메탈: "Metal",
-  힙합: "Hip-hop",
-  재즈: "Jazz",
-  락: "Rock",
-};
+import { genreMapping } from "./Lyrics.tsx";
 
 const genres = Object.keys(genreMapping);
 
@@ -32,7 +23,7 @@ const Genre = () => {
 
   return (
     <Container>
-      <Title>어떤 장르가 좋나요?</Title>
+      <Title>어떤 장르가 좋나요? <br /> 복수선택 가능!</Title>
       <GenreContainer>
         {genres.map((genre) => (
           <GenreButton
