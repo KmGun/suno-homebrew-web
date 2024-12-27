@@ -104,7 +104,7 @@ const Home = () => {
 
   return (
     <Container>
-      <Title>탄핵 음악 만들기</Title>
+      <Title>🔥 탄핵 음악 만들기 🔥</Title>
       <MainImage src={ysr2} alt="윤석열 이미지" />
       <ButtonContainer>
         <Button onClick={() => navigate("/make/artist")}>바로 만들기</Button>

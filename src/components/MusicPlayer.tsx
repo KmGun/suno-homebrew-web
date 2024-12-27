@@ -40,30 +40,47 @@ const MusicPlayer = () => {
 
   const handleShare = async () => {
     try {
-      const imageResponse = await fetch(player.currentSong.thumbnailUrl, {
-        mode: 'no-cors'
-      });
-      const imageBlob = await imageResponse.blob();
-      const imageFile = new File([imageBlob], 'thumbnail.jpg', { type: 'image/jpeg' });
+      // 현재 URL에서 song_request_id와 version 추출
+      const songId = player.currentSong.id;
+      const version = player.currentSong.title.includes("VER 2") ? 2 : 1;
+      const shareUrl = `${window.location.origin}/large-player?song_request_id=${songId}&ver=${version}`;
 
+      // 기본 공유 데이터
       const shareData = {
         title: player.currentSong.title,
-        text: `${player.currentSong.artist}이 불러주는 탄핵 AI 노래를 지금 바로 들어보세요!`,
-        url: window.location.href,
-        files: [imageFile]
+        text: `불러주는 탄핵 AI 노래 ${player.currentSong.title}을 지금 바로 들어보세요!`,
+        url: shareUrl,
       };
 
-      if (navigator.canShare && navigator.canShare(shareData)) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.share({
-          title: player.currentSong.title,
-          text: `${player.currentSong.artist}이 불러주는 탄핵 AI 노래를 지금 바로 들어보세요!`,
-          url: window.location.href,
-        });
+      // 이미지가 있고 파일 공유가 지원되는 경우에만 이미지 추가 시도
+      if (player.currentSong.thumbnailUrl && navigator.canShare) {
+        try {
+          const imageResponse = await fetch(player.currentSong.thumbnailUrl);
+          if (imageResponse.ok) {
+            const imageBlob = await imageResponse.blob();
+            const imageFile = new File([imageBlob], 'thumbnail.jpg', { type: 'image/jpeg' });
+            
+            const shareDataWithImage = {
+              ...shareData,
+              files: [imageFile]
+            };
+
+            if (navigator.canShare(shareDataWithImage)) {
+              await navigator.share(shareDataWithImage);
+              return;
+            }
+          }
+        } catch (imageError) {
+          console.log("이미지 공유 실패, 텍스트만 공유합니다:", imageError);
+        }
       }
+
+      // 이미지 공유가 실패하거나 지원되지 않는 경우 기본 공유 사용
+      await navigator.share(shareData);
+      
     } catch (error) {
       console.error("공유하기 실패:", error);
+      alert("공유하기가 지원되지 않거나 실패했습니다.");
     }
   };
 
@@ -391,7 +408,9 @@ const Artist = styled.div`
 const Controls = styled.div`
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 16px;
+  margin-left: auto;
+  min-width: 100px;
 `;
 
 const PlayButton = styled.button`
@@ -399,6 +418,10 @@ const PlayButton = styled.button`
   border: none;
   padding: 8px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
 
   img {
     width: 24px;
@@ -416,7 +439,7 @@ const MinimizedView = styled.div`
   gap: 16px;
   width: 100%;
   height: 64px;
-  padding-right: 16px;
+  padding: 0 16px;
 `;
 
 const ExpandedView = styled.div`

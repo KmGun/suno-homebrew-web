@@ -102,8 +102,8 @@ const LargePlayer: React.FC = () => {
     
     const bar = e.currentTarget;
     const rect = bar.getBoundingClientRect();
-    const ratio = (e.clientX - rect.left) / rect.width;
-    const newTime = ratio * duration;
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    const newTime = ratio * (audioRef.current.duration || 0);
     
     audioRef.current.currentTime = newTime;
     setCurrentTime(newTime);
@@ -200,7 +200,11 @@ const LargePlayer: React.FC = () => {
           </PlayerControls>
         </ExpandedContent>
       </ExpandedView>
-      <audio ref={audioRef} src={songData.audioUrl} />
+      <audio 
+        ref={audioRef} 
+        src={songData.audioUrl[0]} // audioUrl이 배열이므로 첫 번째 요소 사용
+        preload="metadata"
+      />
     </>
   );
 };
