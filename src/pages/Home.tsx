@@ -6,6 +6,7 @@ import axios from "axios";
 import { SINGERS } from "../constants/artists.ts";
 import { useSetRecoilState } from "recoil";
 import { playerState } from "../atom.ts";
+import InstallAppButton from "../components/InstallAppButton.tsx";
 
 // 음악 데이터 타입 정의
 interface SongData {
@@ -75,9 +76,7 @@ const Home = () => {
   }, []);
 
   const findArtistName = (songData: SongData) => {
-    console.log('모델 이름:', songData.model_name); // 디버깅용
     const artist = SINGERS.find((singer) => singer.id === songData.model_name);
-    console.log('찾은 가수:', artist); // 디버깅용
     return artist ? artist.name : songData.model_name;
   };
 
@@ -138,6 +137,10 @@ const Home = () => {
           </React.Fragment>
         ))}
       </ProfileSection>
+      
+      <FixedInstallButtonWrapper>
+        <InstallAppButton />
+      </FixedInstallButtonWrapper>
     </Container>
   );
 };
@@ -241,6 +244,16 @@ const SongThumbnail = styled.img`
   border-radius: 4px;
   margin-right: 15px;
   object-fit: cover;
+`;
+
+const FixedInstallButtonWrapper = styled.div`
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(66% - 40px);
+  max-width: 400px;
+  z-index: 100;
 `;
 
 export default Home;
