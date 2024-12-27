@@ -94,7 +94,7 @@ const Home = () => {
           artist: findArtistName(song),
           lyric: song.lyric,
           audioUrl: audioUrl,
-          thumbnailUrl: "",
+          thumbnailUrl: `https://song-request-bucket-1.s3.ap-northeast-2.amazonaws.com//suno-homebrew/album-covers/${song.id}/cover.png`,
           id: song.id,
         },
         isPlaying: true,
@@ -123,7 +123,13 @@ const Home = () => {
                 onClick={() => handleSongClick(song, version)}
                 style={{ cursor: "pointer" }}
               >
-                <SongThumbnail />
+                <SongThumbnail 
+                  style={{
+                    backgroundImage: `url(https://song-request-bucket-1.s3.ap-northeast-2.amazonaws.com//suno-homebrew/album-covers/${song.id}/cover.png)`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center'
+                  }}
+                />
                 <ProfileInfo>
                   <ProfileName>{`${song.title} VER ${version}`}</ProfileName>
                   <ProfileDescription>

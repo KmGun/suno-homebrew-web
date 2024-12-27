@@ -117,21 +117,34 @@ const Lyrics = () => {
   const handlePhoneSubmit = async (phone: string) => {
     if (!make.selectedArtist) return;
 
-    const selectedGenresInEnglish = make.selectedGenres.map(
-      (genre) => genreMapping[genre]
-    );
-
-    const allGenres = Object.keys(genreMapping);
-    const unselectedGenres = allGenres
-      .filter((genre) => !make.selectedGenres.includes(genre))
-      .map((genre) => genreMapping[genre]);
-
-    const genderPrompt = (make.selectedArtist as any).isMale
-      ? "make vocal male version"
-      : "make vocal female version";
-
     try {
-      const response = await axios.post(
+      // 1. 장르 변환 (한글 -> 영어)
+      const selectedGenresInEnglish = make.selectedGenres.map(genre => genreMapping[genre]);
+      
+      // 2. 선택되지 않은 장르 목록 생성
+      const unselectedGenres = Object.keys(genreMapping)
+        .filter(genre => !make.selectedGenres.includes(genre))
+        .map(genre => genreMapping[genre]);
+      
+      // 3. 성별에 따른 프롬프트 설정
+      const genderPrompt = (make.selectedArtist as any).isMale ? "make vocal male version" : "make vocal female version";
+      
+      // 4. 임시 요청 ID 생성 (예: 타임스탬프)
+      const tempRequestId = Date.now().toString();
+      
+      // 5. 로컬 스토리지에 임시 요청 ID 저장
+      const existingIds = localStorage.getItem("song_request_id");
+      if (existingIds) {
+        localStorage.setItem("song_request_id", `${existingIds},${tempRequestId}`);
+      } else {
+        localStorage.setItem("song_request_id", tempRequestId);
+      }
+      
+      // 6. 마이페이지로 이동
+      navigate("/");
+      
+      // 7. API 요청 (비동기로 실행)
+      axios.post(
         `${process.env.REACT_APP_SONG_GENERATE_API_URL}/generate-audio`,
         {
           title: make.title,
@@ -141,25 +154,9 @@ const Lyrics = () => {
           style_negative: unselectedGenres.join(", "),
           model_name: make.selectedArtist.id,
           phone_number: phone,
+          request_id: tempRequestId, // 임시 요청 ID 전달
         }
       );
-
-      const data = response.data;
-
-      // 기존 요청 ID들을 가져옴
-      const existingIds = localStorage.getItem("song_request_id");
-
-      // 새로운 ID를 추가
-      if (existingIds) {
-        localStorage.setItem(
-          "song_request_id",
-          `${existingIds},${data.song_request_id}`
-        );
-      } else {
-        localStorage.setItem("song_request_id", data.song_request_id);
-      }
-
-      navigate("/my");
     } catch (error) {
       console.error("API 요청 오류:", error);
       alert("요청 중 오류가 발생했습니다.");
@@ -189,7 +186,7 @@ const Lyrics = () => {
           {
             role: "user",
             content: hasKorean
-              ? `노래 제목: "${make.title}"\n\n다음 가사를 확장해서 작성해주세요. 제목의 의미를 잘 살리고 기존 구조([Intro], [Verse], [Chorus] 등)를 유지하면서 확장해주세요: \n\n${make.lyrics}`
+              ? `노래 제목: "${make.title}"\n\n다음 가사를 확장해서 작성해주세요. 제목의 의미를 ��� 살리고 기존 구조([Intro], [Verse], [Chorus] 등)를 유지하면서 확장해주세요: \n\n${make.lyrics}`
               : `Song title: "${make.title}"\n\nPlease expand these lyrics while maintaining the existing structure ([Intro], [Verse], [Chorus], etc.) and incorporating the meaning of the title: \n\n${make.lyrics}`
           }
         ],
@@ -408,7 +405,7 @@ const ModalButton = styled.button`
   }
 `;
 
-// 새로��� 스타일 컴포넌트 추가
+// 새로운 스타일 컴포넌트 추가
 const LyricsWrapper = styled.div`
   width: 80%;
   position: relative;

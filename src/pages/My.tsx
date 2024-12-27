@@ -6,6 +6,7 @@ import { useSetRecoilState } from "recoil";
 import { playerState } from "../atom.ts";
 import { useNavigate } from "react-router-dom";
 import { ReactComponent as HomeIcon } from "../assets/home.svg";
+import InstallAppButton from "../components/InstallAppButton.tsx";
 
 interface SongData {
   lyric: string;
@@ -94,10 +95,13 @@ const My = () => {
   return (
     <Container>
       <Header>
-        <BackButton onClick={() => navigate(-1)}>
+        <BackButton onClick={() => navigate("/")}>
           <HomeIcon width="24" height="24" />
         </BackButton>
         <Title>내 음악 보기</Title>
+        <InstallButtonWrapper>
+          <InstallAppButton/>
+        </InstallButtonWrapper>
       </Header>
       
       <SectionTitle>내가 만든 음악</SectionTitle>
@@ -155,6 +159,7 @@ const Header = styled.div`
   display: flex;
   align-items: center;
   margin-bottom: 20px;
+  position: relative;
 `;
 
 const BackButton = styled.button`
@@ -261,6 +266,10 @@ const SectionTitle = styled.h2`
   font-size: 20px;
   margin: 24px 0 16px 0;
   color: #ffffff;
+`;
+
+const InstallButtonWrapper = styled.div`
+  margin-left: auto;
 `;
 
 export default My;

@@ -65,7 +65,6 @@ export const SINGERS: ArtistOption[] = [
   { id: "dean", name: "dean", imageUrl: deanImg, isMale: true },
   { id: "taeyeon", name: "태연", imageUrl: taeyeonImg, isMale: false },
   { id: "nmixx_haewon", name: "해원 (엔믹스)", imageUrl: nmixx_haewonImg, isMale: false },
-  { id: "nmixx_haewon", name: "해원 (엔믹스)", imageUrl: nmixx_haewonImg, isMale: false },
   { id: "newjeans_hanni", name: "하니 (뉴진스)", imageUrl: newjeans_hanniImg, isMale: false },
   { id: "newjeans_hein", name: "혜인 (뉴진스)", imageUrl: newjeans_heinImg, isMale: false },
   { id: "newjeans_daniel", name: "다니엘 (뉴진스)", imageUrl: newjeans_danielImg, isMale: false },
