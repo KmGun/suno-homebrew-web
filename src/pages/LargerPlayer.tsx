@@ -75,7 +75,10 @@ const LargePlayer: React.FC = () => {
       if (isPlaying) {
         audioRef.current.pause();
       } else {
-        audioRef.current.play();
+        audioRef.current.play().catch(error => {
+          console.error("재생 실패:", error);
+          setIsPlaying(false);
+        });
       }
       setIsPlaying(!isPlaying);
     }
@@ -98,44 +101,61 @@ const LargePlayer: React.FC = () => {
   };
 
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || !duration) return;
     
-    const bar = e.currentTarget;
-    const rect = bar.getBoundingClientRect();
-    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-    const newTime = ratio * (audioRef.current.duration || 0);
+    const progressBar = e.currentTarget;
+    const rect = progressBar.getBoundingClientRect();
+    const clickPosition = e.clientX - rect.left;
+    const percentageClicked = clickPosition / rect.width;
     
+    const newTime = percentageClicked * duration;
     audioRef.current.currentTime = newTime;
     setCurrentTime(newTime);
   };
 
-  // 오디오 이벤트 리스너
+  // songData가 변경될 때 오디오 초기화 및 이벤트 설정
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    if (songData && audioRef.current) {
+      const audio = audioRef.current;
+      
+      const handleLoadedMetadata = () => {
+        setDuration(audio.duration);
+        setCurrentTime(0);
+      };
 
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-    };
+      const handleTimeUpdate = () => {
+        setCurrentTime(audio.currentTime);
+      };
 
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-    };
+      const handleDurationChange = () => {
+        setDuration(audio.duration);
+      };
 
-    const handleEnded = () => {
-      setIsPlaying(false);
-    };
+      const handleEnded = () => {
+        setIsPlaying(false);
+        setCurrentTime(0);
+      };
 
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-    audio.addEventListener("loadedmetadata", handleLoadedMetadata);
-    audio.addEventListener("ended", handleEnded);
+      // 모든 이벤트 리스너 설정
+      audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.addEventListener("timeupdate", handleTimeUpdate);
+      audio.addEventListener("durationchange", handleDurationChange);
+      audio.addEventListener("ended", handleEnded);
+      
+      // 이미 재생 중이었다면 재생 시작
+      if (isPlaying) {
+        audio.play().catch(console.error);
+      }
 
-    return () => {
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
-      audio.removeEventListener("ended", handleEnded);
-    };
-  }, []);
+      return () => {
+        // 클린업: 모든 이벤트 리스너 제거
+        audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        audio.removeEventListener("timeupdate", handleTimeUpdate);
+        audio.removeEventListener("durationchange", handleDurationChange);
+        audio.removeEventListener("ended", handleEnded);
+      };
+    }
+  }, [songData, isPlaying]); // songData와 isPlaying을 의존성 배열에 추가
 
   const handleMoreSongs = () => {
     navigate('/');
@@ -202,7 +222,7 @@ const LargePlayer: React.FC = () => {
       </ExpandedView>
       <audio 
         ref={audioRef} 
-        src={songData.audioUrl[0]} // audioUrl이 배열이므로 첫 번째 요소 사용
+        src={songData.audioUrl[0]}
         preload="metadata"
       />
     </>
