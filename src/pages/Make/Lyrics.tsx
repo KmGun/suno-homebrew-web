@@ -55,17 +55,18 @@ const PhoneModal = ({
   return (
     <ModalOverlay>
       <ModalContent>
-        <h2>전화번호를 입력해주세요</h2>
+        <h2> 10분정도 걸립니다. <br />제작 완료시 연락받으실 전화번호를 입력해주세요!</h2>
+        <p style={{ fontSize: '14px', marginBottom: '15px', textAlign: 'center', color: '#666666' }}>입력하기 어려울시 01012345678 입력해주세요.</p>
         <ModalInput
           type="tel"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          placeholder="전화번호 입력 (-없이 입력)"
+          placeholder="전화번호 입력 (-없이 입력)" 
           maxLength={11}
         />
         <ModalButtonGroup>
-          <ModalButton onClick={onClose}>취소</ModalButton>
           <ModalButton onClick={handleSubmit}>확인</ModalButton>
+          <CancelButton onClick={onClose}>취소</CancelButton>
         </ModalButtonGroup>
       </ModalContent>
     </ModalOverlay>
@@ -192,7 +193,7 @@ const Lyrics = () => {
           {
             role: "user",
             content: hasKorean
-              ? `노래 제목: "${make.title}"\n\n다음 가사를 확장해서 작성해주세요. 제목의 의미를 ��� 살리고 기존 구조([Intro], [Verse], [Chorus] 등)를 유지하면서 확장해주세요: \n\n${make.lyrics}`
+              ? `노래 제목: "${make.title}"\n\n다음 가사를 확장해서 작성해주세요. 제목의 의미를 살리고 기존 구조([Intro], [Verse], [Chorus] 등)를 유지하면서 확장해주세요: \n\n${make.lyrics}`
               : `Song title: "${make.title}"\n\nPlease expand these lyrics while maintaining the existing structure ([Intro], [Verse], [Chorus], etc.) and incorporating the meaning of the title: \n\n${make.lyrics}`
           }
         ],
@@ -365,10 +366,10 @@ const ModalOverlay = styled.div`
 
 const ModalContent = styled.div`
   background-color: #333;
-  padding: 20px;
+  padding: 30px;
   border-radius: 10px;
-  width: 80%;
-  max-width: 400px;
+  width: 90%;
+  max-width: 500px;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -376,6 +377,8 @@ const ModalContent = styled.div`
   h2 {
     text-align: center;
     margin: 0;
+    font-size: 18px;
+    line-height: 1.5;
   }
 `;
 
@@ -409,6 +412,11 @@ const ModalButton = styled.button`
   &:hover {
     opacity: 0.8;
   }
+`;
+
+const CancelButton = styled(ModalButton)`
+  background-color: #1a1a1a;
+  color: white;
 `;
 
 // 새로운 스타일 컴포넌트 추가
