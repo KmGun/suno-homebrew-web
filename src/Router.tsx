@@ -6,8 +6,8 @@ import NotFound from "./pages/NotFound.tsx";
 import Artist from "./pages/Make/Artist.tsx";
 import Genre from "./pages/Make/Genre.tsx";
 import Lyrics from "./pages/Make/Lyrics.tsx";
-import Main from "./pages/Main/Main.tsx";
 import My from "./pages/My.tsx";
+import LargePlayer from "./pages/LargerPlayer.tsx";
 function Router() {
   return (
     <BrowserRouter>
@@ -19,6 +19,7 @@ function Router() {
         <Route path="/make/lyrics" element={<Lyrics />} />
         <Route path="/my" element={<My />} />
         <Route path="*" element={<NotFound />} />
+        <Route path="/large-player" element={<LargePlayer />} />
       </Routes>
     </BrowserRouter>
   );

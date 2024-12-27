@@ -8,6 +8,12 @@ import ShareIcon from "../assets/share.svg";
 import HeartIcon from "../assets/heart.svg";
 import HeartFilledIcon from "../assets/heart-filled.svg";
 
+export const formatTime = (time: number) => {
+  const minutes = Math.floor(time / 60);
+  const seconds = Math.floor(time % 60);
+  return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+};
+
 const MusicPlayer = () => {
   const [player, setPlayer] = useRecoilState(playerState);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -34,11 +40,28 @@ const MusicPlayer = () => {
 
   const handleShare = async () => {
     try {
-      await navigator.share({
-        title: player.currentSong.title,
-        text: `${player.currentSong.artist} - ${player.currentSong.title}`,
-        url: window.location.href,
+      const imageResponse = await fetch(player.currentSong.thumbnailUrl, {
+        mode: 'no-cors'
       });
+      const imageBlob = await imageResponse.blob();
+      const imageFile = new File([imageBlob], 'thumbnail.jpg', { type: 'image/jpeg' });
+
+      const shareData = {
+        title: player.currentSong.title,
+        text: `${player.currentSong.artist}이 불러주는 탄핵 AI 노래를 지금 바로 들어보세요!`,
+        url: window.location.href,
+        files: [imageFile]
+      };
+
+      if (navigator.canShare && navigator.canShare(shareData)) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.share({
+          title: player.currentSong.title,
+          text: `${player.currentSong.artist}이 불러주는 탄핵 AI 노래를 지금 바로 들어보세요!`,
+          url: window.location.href,
+        });
+      }
     } catch (error) {
       console.error("공유하기 실패:", error);
     }
@@ -133,12 +156,6 @@ const MusicPlayer = () => {
     setCurrentTime(newTime);
   };
 
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
-
   useEffect(() => {
     if (isExpanded) {
       document.body.style.overflow = "hidden";
@@ -158,9 +175,13 @@ const MusicPlayer = () => {
   }, [isExpanded]);
 
   const handleClose = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault();
     e.stopPropagation();
     setIsExpanded(false);
+    setPlayer(prev => ({
+      ...prev,
+      currentSong: null,
+      isPlaying: false
+    }));
   };
 
   useEffect(() => {
@@ -247,6 +268,7 @@ const MusicPlayer = () => {
                   alt="재생 버튼"
                 />
               </PlayButton>
+              <CloseButton onClick={handleClose}>×</CloseButton>
             </Controls>
           </MinimizedView>
         </PlayerContent>
@@ -268,7 +290,7 @@ const MusicPlayer = () => {
                 {player.currentSong.lyric ? (
                   <Lyrics>{player.currentSong.lyric}</Lyrics>
                 ) : (
-                  <Lyrics>���사 정보가 없습니다.</Lyrics>
+                  <Lyrics>사 정보가 없습니다.</Lyrics>
                 )}
               </LyricsSection>
 
@@ -369,7 +391,7 @@ const Artist = styled.div`
 const Controls = styled.div`
   display: flex;
   align-items: center;
-  margin-left: auto;
+  gap: 8px;
 `;
 
 const PlayButton = styled.button`
@@ -394,6 +416,7 @@ const MinimizedView = styled.div`
   gap: 16px;
   width: 100%;
   height: 64px;
+  padding-right: 16px;
 `;
 
 const ExpandedView = styled.div`
