@@ -193,12 +193,18 @@ const MusicPlayer = () => {
 
   const handleClose = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
+    
+    if (!isExpanded) {
+      // 최소화된 상태에서만 음악 재생을 중지하고 현재 곡을 제거
+      setPlayer(prev => ({
+        ...prev,
+        currentSong: null,
+        isPlaying: false
+      }));
+    }
+    
+    // 확장된 상태에서는 단순히 크기만 줄임
     setIsExpanded(false);
-    setPlayer(prev => ({
-      ...prev,
-      currentSong: null,
-      isPlaying: false
-    }));
   };
 
   useEffect(() => {
