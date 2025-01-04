@@ -25,17 +25,10 @@ interface SongResponse {
 
 const Home = () => {
   const navigate = useNavigate();
-  const [hasSongRequest, setHasSongRequest] = useState<boolean>(false);
   const [songs, setSongs] = useState<SongData[]>([]);
   const [allSongs, setAllSongs] = useState<SongData[]>([]);
   const setPlayer = useSetRecoilState(playerState);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-
-  useEffect(() => {
-    // localStorage 확인
-    const songRequestId = localStorage.getItem("song_request_id");
-    setHasSongRequest(!!songRequestId);
-  }, []);
 
   useEffect(() => {
     // 완성된 음악 목록 가져오기
@@ -61,7 +54,7 @@ const Home = () => {
           );
 
         setAllSongs(songsArray);
-        setSongs(songsArray.slice(0, 3));
+        setSongs(songsArray.slice(0, 6));
       } catch (error) {
         console.error("음악 목록을 가져오는데 실패했습니다:", error);
       }
@@ -102,9 +95,7 @@ const Home = () => {
       <MainImage src={ysr2} alt="윤석열 이미지" />
       <ButtonContainer>
         <Button onClick={() => navigate("/make/artist")}>바로 만들기</Button>
-        {hasSongRequest && (
-          <Button onClick={() => navigate("/my")}>내 음악</Button>
-        )}
+        <Button onClick={() => navigate("/my")}>내 음악</Button>
       </ButtonContainer>
 
       <ProfileSection>
