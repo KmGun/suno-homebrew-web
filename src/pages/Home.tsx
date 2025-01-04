@@ -30,20 +30,31 @@ const Home = () => {
   const setPlayer = useSetRecoilState(playerState);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
+  const checkAndUpdateVisitStatus = () => {
+    const isVisited = localStorage.getItem('isVisited') === 'true';
+    if (!isVisited) {
+      localStorage.setItem('isVisited', 'true');
+    }
+    return isVisited;
+  };
+
   useEffect(() => {
-    // 완성된 음악 목록 가져오기
     const fetchSongs = async () => {
+      const isVisited = checkAndUpdateVisitStatus();
+      
       try {
-        const response = await axios.get(`${process.env.REACT_APP_SONG_GENERATE_API_URL}/all-completed-songs`);
+        const response = await axios.post(
+          `${process.env.REACT_APP_SONG_GENERATE_API_URL}/all-completed-songs`,
+          { isVisited }
+        );
         
         const songsData: SongResponse = response.data;
-
+        console.log(songsData);
         if (!songsData || Object.keys(songsData).length === 0) {
           console.log('받아온 데이터가 비어있습니다');
           return;
         }
 
-        // 객체를 배열로 변환하고 최신순으로 정렬
         const songsArray = Object.entries(songsData)
           .map(([id, data]) => ({
             id,

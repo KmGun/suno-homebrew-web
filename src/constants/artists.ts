@@ -4,7 +4,6 @@ import tenCmImg from "../assets/10cm.png";
 import shImg from "../assets/akmu_suhyeon.png";
 import byrImg from "../assets/baekyerin.png";
 import bol4Img from "../assets/bol4.png";
-import deanImg from "../assets/dean.png";
 import iuImg from "../assets/iu_new.png";
 import jannabiImg from "../assets/jannabi.png";
 import jojungseokImg from "../assets/jjs.png";
@@ -62,7 +61,6 @@ export const SINGERS: ArtistOption[] = [
   { id: "leemoonsae", name: "이문세", imageUrl: leemoonsaeImg, isMale: true },
   { id: "jojungseok", name: "조정석", imageUrl: jojungseokImg, isMale: true },
   { id: "jannabi", name: "잔나비", imageUrl: jannabiImg, isMale: true },
-  { id: "dean", name: "dean", imageUrl: deanImg, isMale: true },
   { id: "taeyeon", name: "태연", imageUrl: taeyeonImg, isMale: false },
   { id: "nmixx_haewon", name: "해원 (엔믹스)", imageUrl: nmixx_haewonImg, isMale: false },
   { id: "newjeans_hanni", name: "하니 (뉴진스)", imageUrl: newjeans_hanniImg, isMale: false },
